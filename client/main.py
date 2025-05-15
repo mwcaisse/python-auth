@@ -19,7 +19,9 @@ Future:
 import datetime
 
 from cryptography import x509
-from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePrivateKey
+from cryptography.x509 import Certificate
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives.asymmetric import ec
 
@@ -168,6 +170,37 @@ def main():
         )
         .sign(int_key, hashes.SHA256())
     )
+
+    print("Writing certificates to disc")
+    # lets write out all of these certs to file
+    write_certificate_to_file(root_cert, root_key, "root_ca", b"password")
+    write_certificate_to_file(int_cert, int_key, "int_ca", b"password")
+    write_certificate_to_file(user_cert, user_key, "user_cert", b"password")
+
+
+def write_certificate_to_file(cert: Certificate, key: EllipticCurvePrivateKey, name_prefix: str, password: bytes):
+    """
+    Writes the given key to file
+    :param cert: The public key to write to file
+    :param key: The private key to write to file
+    :param name_prefix: The name / path to file to write the certificate without the extension. Will add .pem or .key depending on key type
+    :param password: The password to use
+    :return:
+    """
+    public_key_name = f"{name_prefix}.pem"
+    private_key_name = f"{name_prefix}.key"
+
+    with open(public_key_name, "wb") as f:
+        f.write(cert.public_bytes(serialization.Encoding.PEM))
+
+    with open(private_key_name, "wb") as f:
+        f.write(
+            key.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.TraditionalOpenSSL,
+                encryption_algorithm=serialization.BestAvailableEncryption(password),
+            )
+        )
 
 
 if __name__ == "__main__":
