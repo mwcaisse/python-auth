@@ -1,0 +1,13 @@
+[tool.black]
+line-length = 120
+
+[project]
+name = "python-auth-client"
+description = "Client for the python-auth experiementation project"
+license = "MIT"
+dynamic = ["version"]
+
+dependencies = [
+    "black==25.1.0",
+    "cryptography==44.0.3"
+]
